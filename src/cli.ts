@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
+import { homedir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -31,6 +32,20 @@ function getSitesDir(): string {
   return join(dirname(fileURLToPath(import.meta.url)), "..", "sites");
 }
 
+function getProfilePath(): string | null {
+  const profilePath = join(homedir(), ".abg", "profile");
+  return existsSync(profilePath) ? profilePath : null;
+}
+
+function getOpenArgs(): string {
+  const profilePath = getProfilePath();
+  const args = ["--headed"];
+  if (profilePath) {
+    args.push(`--profile '${profilePath}'`);
+  }
+  return args.join(" ");
+}
+
 function runScript(site: string, script: string): void {
   const sitesDir = getSitesDir();
   const siteDir = join(sitesDir, site);
@@ -56,7 +71,7 @@ function runScript(site: string, script: string): void {
   }
 
   const url = `https://${parsed.domain}`;
-  exec(`agent-browser open --headed '${url}'`);
+  exec(`agent-browser open ${getOpenArgs()} '${url}'`);
   exec("agent-browser wait --load networkidle");
   const result = exec(`agent-browser eval '${parsed.body.replace(/'/g, "'\\''")}'`);
   console.log(result);
@@ -82,7 +97,7 @@ function main() {
   const url = args[0]!;
   const fullUrl = normalizeUrl(url);
 
-  exec(`agent-browser open --headed '${fullUrl}'`);
+  exec(`agent-browser open ${getOpenArgs()} '${fullUrl}'`);
   exec("agent-browser wait --load networkidle");
   const title = exec("agent-browser eval 'document.title'");
 
