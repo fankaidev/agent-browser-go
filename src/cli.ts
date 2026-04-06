@@ -32,6 +32,17 @@ export function parseFrontmatter(content: string): ScriptConfig {
     throw new Error("Missing or invalid type in frontmatter");
   }
 
+  if (type === "api" && !urlMatch) {
+    throw new Error("api type requires url");
+  }
+  if (type === "fetch") {
+    if (!urlMatch) throw new Error("fetch type requires url");
+    if (!domainMatch) throw new Error("fetch type requires domain");
+  }
+  if (type === "scrape" && !domainMatch) {
+    throw new Error("scrape type requires domain");
+  }
+
   return {
     type,
     url: urlMatch?.[1]?.trim(),

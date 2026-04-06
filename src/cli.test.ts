@@ -82,4 +82,34 @@ type: invalid
 */`;
     expect(() => parseFrontmatter(content)).toThrow("Missing or invalid type");
   });
+
+  it("throws when api type missing url", () => {
+    const content = `/*
+type: api
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("api type requires url");
+  });
+
+  it("throws when fetch type missing url", () => {
+    const content = `/*
+type: fetch
+domain: example.com
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("fetch type requires url");
+  });
+
+  it("throws when fetch type missing domain", () => {
+    const content = `/*
+type: fetch
+url: https://example.com/api
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("fetch type requires domain");
+  });
+
+  it("throws when scrape type missing domain", () => {
+    const content = `/*
+type: scrape
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("scrape type requires domain");
+  });
 });
