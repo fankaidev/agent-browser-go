@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+
+export function normalizeUrl(url: string): string {
+  return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
+}
 
 function printUsage() {
   console.log("Usage: abg <url>");
@@ -20,9 +25,7 @@ function main() {
   }
 
   const url = args[0]!;
-
-  // Normalize URL
-  const fullUrl = url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
+  const fullUrl = normalizeUrl(url);
 
   exec(`agent-browser open '${fullUrl}'`);
   exec("agent-browser wait --load networkidle");
@@ -31,4 +34,7 @@ function main() {
   console.log(title);
 }
 
-main();
+// Only run main when executed directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}
