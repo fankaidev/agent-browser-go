@@ -1,23 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeUrl, parseFrontmatter } from "./cli.js";
-
-describe("normalizeUrl", () => {
-  it("adds https:// to bare domain", () => {
-    expect(normalizeUrl("example.com")).toBe("https://example.com");
-  });
-
-  it("keeps https:// url unchanged", () => {
-    expect(normalizeUrl("https://example.com")).toBe("https://example.com");
-  });
-
-  it("keeps http:// url unchanged", () => {
-    expect(normalizeUrl("http://example.com")).toBe("http://example.com");
-  });
-
-  it("handles domain with path", () => {
-    expect(normalizeUrl("example.com/path")).toBe("https://example.com/path");
-  });
-});
+import { parseFrontmatter, validateArgs } from "./cli.js";
 
 describe("parseFrontmatter", () => {
   it("extracts domain from frontmatter", () => {
@@ -43,5 +25,45 @@ name: test
 */
 body`;
     expect(() => parseFrontmatter(content)).toThrow("Missing domain in frontmatter");
+  });
+});
+
+describe("validateArgs", () => {
+  it("returns error when no arguments provided", () => {
+    const result = validateArgs([]);
+    expect(result).toEqual({
+      ok: false,
+      error: "Missing site argument",
+      usage: "Usage: abg <site> <action>",
+    });
+  });
+
+  it("returns error with available actions when action is missing", () => {
+    const result = validateArgs(["reddit"]);
+    expect(result).toEqual({
+      ok: false,
+      error: "Missing action argument",
+      usage: "Usage: abg <site> <action>",
+      actions: ["best"],
+    });
+  });
+
+  it("returns error with empty actions for unknown site", () => {
+    const result = validateArgs(["unknown"]);
+    expect(result).toEqual({
+      ok: false,
+      error: "Missing action argument",
+      usage: "Usage: abg <site> <action>",
+      actions: [],
+    });
+  });
+
+  it("returns success when site and action provided", () => {
+    const result = validateArgs(["reddit", "best"]);
+    expect(result).toEqual({
+      ok: true,
+      site: "reddit",
+      action: "best",
+    });
   });
 });
