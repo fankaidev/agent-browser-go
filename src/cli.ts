@@ -22,10 +22,15 @@ export function parseFrontmatter(content: string): { domain: string; body: strin
   return { domain: domainMatch[1]!.trim(), body: body!.trim() };
 }
 
+let debug = false;
+
 function printUsage() {
   console.log("Usage:");
-  console.log("  abg <url>              Opens URL and prints page title");
-  console.log("  abg <site> <script>    Runs sites/<site>/<script>.js");
+  console.log("  abg [--debug] <url>              Opens URL and prints page title");
+  console.log("  abg [--debug] <site> <script>    Runs sites/<site>/<script>.js");
+  console.log("");
+  console.log("Options:");
+  console.log("  --debug    Print agent-browser commands before executing");
 }
 
 function getSitesDir(): string {
@@ -80,6 +85,9 @@ function runScript(site: string, script: string): void {
 const WAIT_TIMEOUT = 60000;
 
 function exec(command: string): string {
+  if (debug) {
+    console.error(`> ${command}`);
+  }
   return execSync(command, {
     encoding: "utf-8",
     env: { ...process.env, AGENT_BROWSER_DEFAULT_TIMEOUT: String(WAIT_TIMEOUT) },
@@ -87,7 +95,12 @@ function exec(command: string): string {
 }
 
 function main() {
-  const args = process.argv.slice(2);
+  let args = process.argv.slice(2);
+
+  if (args[0] === "--debug") {
+    debug = true;
+    args = args.slice(1);
+  }
 
   if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
     printUsage();
