@@ -96,24 +96,25 @@ function runScript(site: string, script: string): void {
   }
 
   const content = readFileSync(scriptPath, "utf-8");
-  let parsed: ScriptConfig;
+  let config: ScriptConfig;
   try {
-    parsed = parseFrontmatter(content);
-  } catch {
-    console.error(`Invalid script format in ${scriptPath}`);
+    config = parseFrontmatter(content);
+  } catch (e) {
+    console.error(`Invalid script format in ${scriptPath}: ${e instanceof Error ? e.message : e}`);
     process.exit(1);
   }
 
-  if (!parsed.domain) {
-    console.error(`Missing domain in ${scriptPath}`);
-    process.exit(1);
+  switch (config.type) {
+    case "api":
+      runApi(config.url!);
+      break;
+    case "fetch":
+      runFetch(config.domain!, config.url!);
+      break;
+    case "scrape":
+      runScrape(config.domain!, config.body);
+      break;
   }
-
-  const url = `https://${parsed.domain}`;
-  ab(`open ${getOpenArgs()} '${url}'`);
-  ab("wait --load networkidle");
-  const result = ab(`eval --json '${parsed.body.replace(/'/g, "'\\''")}'`);
-  console.log(result);
 }
 
 const WAIT_TIMEOUT = 60000;
@@ -130,18 +131,18 @@ function runApi(url: string): void {
 
 function runFetch(domain: string, url: string): void {
   const pageUrl = `https://${domain}`;
-  exec(`agent-browser open ${getOpenArgs()} '${pageUrl}'`);
-  exec("agent-browser wait --load networkidle");
+  ab(`open ${getOpenArgs()} '${pageUrl}'`);
+  ab("wait --load networkidle");
   const fetchCode = `fetch('${url}').then(r => r.json())`;
-  const result = exec(`agent-browser eval --json '${fetchCode}'`);
+  const result = ab(`eval --json '${fetchCode}'`);
   console.log(result);
 }
 
 function runScrape(domain: string, body: string): void {
   const url = `https://${domain}`;
-  exec(`agent-browser open ${getOpenArgs()} '${url}'`);
-  exec("agent-browser wait --load networkidle");
-  const result = exec(`agent-browser eval --json '${body.replace(/'/g, "'\\''")}'`);
+  ab(`open ${getOpenArgs()} '${url}'`);
+  ab("wait --load networkidle");
+  const result = ab(`eval --json '${body.replace(/'/g, "'\\''")}'`);
   console.log(result);
 }
 
