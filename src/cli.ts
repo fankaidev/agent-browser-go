@@ -9,17 +9,35 @@ export function normalizeUrl(url: string): string {
   return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
 }
 
-export function parseFrontmatter(content: string): { domain: string; body: string } {
-  const match = content.match(/^\/\*\n([\s\S]*?)\n\*\/\n([\s\S]*)$/);
+export interface ScriptConfig {
+  type: "api" | "fetch" | "scrape";
+  url: string | undefined;
+  domain: string | undefined;
+  body: string;
+}
+
+export function parseFrontmatter(content: string): ScriptConfig {
+  const match = content.match(/^\/\*\n([\s\S]*?)\n\*\/\n?([\s\S]*)$/);
   if (!match) {
     throw new Error("Invalid frontmatter format");
   }
   const [, frontmatter, body] = match;
+
+  const typeMatch = frontmatter!.match(/^type:\s*(.+)$/m);
+  const urlMatch = frontmatter!.match(/^url:\s*(.+)$/m);
   const domainMatch = frontmatter!.match(/^domain:\s*(.+)$/m);
-  if (!domainMatch) {
-    throw new Error("Missing domain in frontmatter");
+
+  const type = typeMatch?.[1]?.trim() as ScriptConfig["type"] | undefined;
+  if (!type || !["api", "fetch", "scrape"].includes(type)) {
+    throw new Error("Missing or invalid type in frontmatter");
   }
-  return { domain: domainMatch[1]!.trim(), body: body!.trim() };
+
+  return {
+    type,
+    url: urlMatch?.[1]?.trim(),
+    domain: domainMatch?.[1]?.trim(),
+    body: body!.trim(),
+  };
 }
 
 let debug = false;
@@ -67,10 +85,15 @@ function runScript(site: string, script: string): void {
   }
 
   const content = readFileSync(scriptPath, "utf-8");
-  let parsed: { domain: string; body: string };
+  let parsed: ScriptConfig;
   try {
     parsed = parseFrontmatter(content);
   } catch {
+    console.error(`Invalid script format in ${scriptPath}`);
+    process.exit(1);
+  }
+
+  if (!parsed.domain) {
     console.error(`Missing domain in ${scriptPath}`);
     process.exit(1);
   }

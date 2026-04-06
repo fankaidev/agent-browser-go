@@ -20,28 +20,66 @@ describe("normalizeUrl", () => {
 });
 
 describe("parseFrontmatter", () => {
-  it("extracts domain from frontmatter", () => {
+  it("parses api type with url", () => {
     const content = `/*
-domain: reddit.com
-*/
-Array.from(document.querySelectorAll('h1'))`;
+type: api
+url: https://example.com/api
+*/`;
     const result = parseFrontmatter(content);
     expect(result).toEqual({
-      domain: "reddit.com",
-      body: "Array.from(document.querySelectorAll('h1'))",
+      type: "api",
+      url: "https://example.com/api",
+      domain: undefined,
+      body: "",
+    });
+  });
+
+  it("parses fetch type with url and domain", () => {
+    const content = `/*
+type: fetch
+url: https://example.com/api
+domain: example.com
+*/`;
+    const result = parseFrontmatter(content);
+    expect(result).toEqual({
+      type: "fetch",
+      url: "https://example.com/api",
+      domain: "example.com",
+      body: "",
+    });
+  });
+
+  it("parses scrape type with domain and body", () => {
+    const content = `/*
+type: scrape
+domain: example.com
+*/
+document.title`;
+    const result = parseFrontmatter(content);
+    expect(result).toEqual({
+      type: "scrape",
+      url: undefined,
+      domain: "example.com",
+      body: "document.title",
     });
   });
 
   it("throws on missing frontmatter", () => {
-    const content = `Array.from(document.querySelectorAll('h1'))`;
+    const content = `document.title`;
     expect(() => parseFrontmatter(content)).toThrow("Invalid frontmatter format");
   });
 
-  it("throws on missing domain", () => {
+  it("throws on missing type", () => {
     const content = `/*
-name: test
-*/
-body`;
-    expect(() => parseFrontmatter(content)).toThrow("Missing domain in frontmatter");
+url: https://example.com
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("Missing or invalid type");
+  });
+
+  it("throws on invalid type", () => {
+    const content = `/*
+type: invalid
+*/`;
+    expect(() => parseFrontmatter(content)).toThrow("Missing or invalid type");
   });
 });
