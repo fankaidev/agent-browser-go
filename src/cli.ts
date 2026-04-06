@@ -56,7 +56,7 @@ function runScript(site: string, script: string): void {
   }
 
   const url = `https://${parsed.domain}`;
-  exec(`agent-browser open '${url}'`);
+  exec(`agent-browser open --headed '${url}'`);
   exec("agent-browser wait --load networkidle");
   const result = exec(`agent-browser eval '${parsed.body.replace(/'/g, "'\\''")}'`);
   console.log(result);
@@ -82,7 +82,7 @@ function main() {
   const url = args[0]!;
   const fullUrl = normalizeUrl(url);
 
-  exec(`agent-browser open '${fullUrl}'`);
+  exec(`agent-browser open --headed '${fullUrl}'`);
   exec("agent-browser wait --load networkidle");
   const title = exec("agent-browser eval 'document.title'");
 
