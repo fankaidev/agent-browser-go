@@ -1,6 +1,5 @@
 /*
+type: fetch
+url: https://www.reddit.com/r/best.json?limit=50
 domain: reddit.com
 */
-fetch("https://www.reddit.com/best.json?limit=50")
-  .then((r) => r.json())
-  .then((d) => d.data);
