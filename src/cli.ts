@@ -128,6 +128,15 @@ function runApi(url: string): void {
   console.log(result);
 }
 
+function runFetch(domain: string, url: string): void {
+  const pageUrl = `https://${domain}`;
+  exec(`agent-browser open ${getOpenArgs()} '${pageUrl}'`);
+  exec("agent-browser wait --load networkidle");
+  const fetchCode = `fetch('${url}').then(r => r.json())`;
+  const result = exec(`agent-browser eval --json '${fetchCode}'`);
+  console.log(result);
+}
+
 function exec(command: string): string {
   if (debug) {
     console.error(`> ${command}`);
