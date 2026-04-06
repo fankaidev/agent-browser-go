@@ -58,7 +58,8 @@ function runScript(site: string, script: string): void {
   const url = `https://${parsed.domain}`;
   exec(`agent-browser open --headed '${url}'`);
   exec("agent-browser wait --load networkidle");
-  const result = exec(`agent-browser eval '${parsed.body.replace(/'/g, "'\\''")}'`);
+  const base64Script = Buffer.from(parsed.body).toString("base64");
+  const result = exec(`agent-browser eval -b '${base64Script}'`);
   console.log(result);
 }
 
