@@ -1,0 +1,43 @@
+{
+  "name": "agent-browser-go",
+  "version": "0.1.0",
+  "description": "Extended CLI wrapper for agent-browser",
+  "bin": {
+    "abg": "./dist/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "postinstall": "lefthook install",
+    "dev": "tsx src/cli.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint:unused": "knip",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "knip": "^6.3.0",
+    "lefthook": "^2.1.4",
+    "oxfmt": "^0.43.0",
+    "oxlint": "^1.58.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook",
+      "esbuild"
+    ]
+  }
+}
