@@ -1,4 +1,6 @@
 /*
 domain: reddit.com
 */
-Array.from(document.querySelectorAll("article h3")).map((h) => h.textContent);
+fetch("https://www.reddit.com/best.json?limit=50")
+  .then((r) => r.json())
+  .then((d) => d.data);

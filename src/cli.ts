@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
+import { homedir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -21,14 +22,33 @@ export function parseFrontmatter(content: string): { domain: string; body: strin
   return { domain: domainMatch[1]!.trim(), body: body!.trim() };
 }
 
+let debug = false;
+
 function printUsage() {
   console.log("Usage:");
-  console.log("  abg <url>              Opens URL and prints page title");
-  console.log("  abg <site> <script>    Runs sites/<site>/<script>.js");
+  console.log("  abg [--debug] <url>              Opens URL and prints page title");
+  console.log("  abg [--debug] <site> <script>    Runs sites/<site>/<script>.js");
+  console.log("");
+  console.log("Options:");
+  console.log("  --debug    Print agent-browser commands before executing");
 }
 
 function getSitesDir(): string {
   return join(dirname(fileURLToPath(import.meta.url)), "..", "sites");
+}
+
+function getProfilePath(): string | null {
+  const profilePath = join(homedir(), ".abg", "profile");
+  return existsSync(profilePath) ? profilePath : null;
+}
+
+function getOpenArgs(): string {
+  const profilePath = getProfilePath();
+  const args = ["--headed"];
+  if (profilePath) {
+    args.push(`--profile '${profilePath}'`);
+  }
+  return args.join(" ");
 }
 
 function runScript(site: string, script: string): void {
@@ -56,18 +76,31 @@ function runScript(site: string, script: string): void {
   }
 
   const url = `https://${parsed.domain}`;
-  exec(`agent-browser open '${url}'`);
+  exec(`agent-browser open ${getOpenArgs()} '${url}'`);
   exec("agent-browser wait --load networkidle");
-  const result = exec(`agent-browser eval '${parsed.body.replace(/'/g, "'\\''")}'`);
+  const result = exec(`agent-browser eval --json '${parsed.body.replace(/'/g, "'\\''")}'`);
   console.log(result);
 }
 
+const WAIT_TIMEOUT = 60000;
+
 function exec(command: string): string {
-  return execSync(command, { encoding: "utf-8" }).trim();
+  if (debug) {
+    console.error(`> ${command}`);
+  }
+  return execSync(command, {
+    encoding: "utf-8",
+    env: { ...process.env, AGENT_BROWSER_DEFAULT_TIMEOUT: String(WAIT_TIMEOUT) },
+  }).trim();
 }
 
 function main() {
-  const args = process.argv.slice(2);
+  let args = process.argv.slice(2);
+
+  if (args[0] === "--debug") {
+    debug = true;
+    args = args.slice(1);
+  }
 
   if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
     printUsage();
@@ -82,11 +115,11 @@ function main() {
   const url = args[0]!;
   const fullUrl = normalizeUrl(url);
 
-  exec(`agent-browser open '${fullUrl}'`);
+  exec(`agent-browser open ${getOpenArgs()} '${fullUrl}'`);
   exec("agent-browser wait --load networkidle");
   const title = exec("agent-browser eval 'document.title'");
 
-  console.log(title);
+  console.log(JSON.stringify({ title }));
 }
 
 // Only run main when executed directly
