@@ -12,6 +12,6 @@ pre-commit:
       run: pnpm oxlint --fix {staged_files}
       stage_fixed: true
     format:
-      glob: "*.{ts,tsx,json,md,yml,yaml}"
+      glob: "*.{ts,tsx,js,json,md,yml,yaml}"
       run: pnpm oxfmt --write {staged_files}
       stage_fixed: true
