@@ -1,4 +1,6 @@
 /*
 domain: reddit.com
 */
-Array.from(document.querySelectorAll("shreddit-post")).map((p) => p.getAttribute("post-title"));
+fetch("https://www.reddit.com/best.json?limit=50")
+  .then((r) => r.json())
+  .then((d) => d.data.children.map((c) => c.data.title));
