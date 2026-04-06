@@ -123,6 +123,11 @@ function ab(subcommand: string): string {
   return exec(`agent-browser --session ${AB_SESSION} ${subcommand}`);
 }
 
+function runApi(url: string): void {
+  const result = execSync(`curl -s '${url}'`, { encoding: "utf-8" }).trim();
+  console.log(result);
+}
+
 function exec(command: string): string {
   if (debug) {
     console.error(`> ${command}`);
