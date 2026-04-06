@@ -78,7 +78,7 @@ function runScript(site: string, script: string): void {
   const url = `https://${parsed.domain}`;
   exec(`agent-browser open ${getOpenArgs()} '${url}'`);
   exec("agent-browser wait --load networkidle");
-  const result = exec(`agent-browser eval '${parsed.body.replace(/'/g, "'\\''")}'`);
+  const result = exec(`agent-browser eval --json '${parsed.body.replace(/'/g, "'\\''")}'`);
   console.log(result);
 }
 
@@ -119,7 +119,7 @@ function main() {
   exec("agent-browser wait --load networkidle");
   const title = exec("agent-browser eval 'document.title'");
 
-  console.log(title);
+  console.log(JSON.stringify({ title }));
 }
 
 // Only run main when executed directly
