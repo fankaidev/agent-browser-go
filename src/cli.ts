@@ -77,8 +77,13 @@ function runScript(site: string, script: string): void {
   console.log(result);
 }
 
+const WAIT_TIMEOUT = 60000;
+
 function exec(command: string): string {
-  return execSync(command, { encoding: "utf-8" }).trim();
+  return execSync(command, {
+    encoding: "utf-8",
+    env: { ...process.env, AGENT_BROWSER_DEFAULT_TIMEOUT: String(WAIT_TIMEOUT) },
+  }).trim();
 }
 
 function main() {
