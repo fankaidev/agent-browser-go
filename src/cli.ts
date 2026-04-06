@@ -137,6 +137,14 @@ function runFetch(domain: string, url: string): void {
   console.log(result);
 }
 
+function runScrape(domain: string, body: string): void {
+  const url = `https://${domain}`;
+  exec(`agent-browser open ${getOpenArgs()} '${url}'`);
+  exec("agent-browser wait --load networkidle");
+  const result = exec(`agent-browser eval --json '${body.replace(/'/g, "'\\''")}'`);
+  console.log(result);
+}
+
 function exec(command: string): string {
   if (debug) {
     console.error(`> ${command}`);
