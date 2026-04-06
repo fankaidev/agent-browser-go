@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeUrl } from "./cli.js";
+import { normalizeUrl, parseFrontmatter } from "./cli.js";
 
 describe("normalizeUrl", () => {
   it("adds https:// to bare domain", () => {
@@ -16,5 +16,32 @@ describe("normalizeUrl", () => {
 
   it("handles domain with path", () => {
     expect(normalizeUrl("example.com/path")).toBe("https://example.com/path");
+  });
+});
+
+describe("parseFrontmatter", () => {
+  it("extracts domain from frontmatter", () => {
+    const content = `/*
+domain: reddit.com
+*/
+Array.from(document.querySelectorAll('h1'))`;
+    const result = parseFrontmatter(content);
+    expect(result).toEqual({
+      domain: "reddit.com",
+      body: "Array.from(document.querySelectorAll('h1'))",
+    });
+  });
+
+  it("throws on missing frontmatter", () => {
+    const content = `Array.from(document.querySelectorAll('h1'))`;
+    expect(() => parseFrontmatter(content)).toThrow("Invalid frontmatter format");
+  });
+
+  it("throws on missing domain", () => {
+    const content = `/*
+name: test
+*/
+body`;
+    expect(() => parseFrontmatter(content)).toThrow("Missing domain in frontmatter");
   });
 });
