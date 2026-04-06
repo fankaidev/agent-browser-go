@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck
+    unused:
+      glob: "*.{ts,tsx}"
+      run: pnpm lint:unused
+    lint:
+      glob: "*.{ts,tsx}"
+      run: pnpm oxlint --fix {staged_files}
+      stage_fixed: true
+    format:
+      glob: "*.{ts,tsx,json,md,yml,yaml}"
+      run: pnpm oxfmt --write {staged_files}
+      stage_fixed: true

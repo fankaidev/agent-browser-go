@@ -1,2 +1,3 @@
 # agent-browser-go
-General CLI based on agent-browser
+
+Extended CLI wrapper for agent-browser.
