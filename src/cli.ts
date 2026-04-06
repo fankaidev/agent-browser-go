@@ -76,13 +76,18 @@ function runScript(site: string, script: string): void {
   }
 
   const url = `https://${parsed.domain}`;
-  exec(`agent-browser open ${getOpenArgs()} '${url}'`);
-  exec("agent-browser wait --load networkidle");
-  const result = exec(`agent-browser eval --json '${parsed.body.replace(/'/g, "'\\''")}'`);
+  ab(`open ${getOpenArgs()} '${url}'`);
+  ab("wait --load networkidle");
+  const result = ab(`eval --json '${parsed.body.replace(/'/g, "'\\''")}'`);
   console.log(result);
 }
 
 const WAIT_TIMEOUT = 60000;
+const AB_SESSION = "abg";
+
+function ab(subcommand: string): string {
+  return exec(`agent-browser --session ${AB_SESSION} ${subcommand}`);
+}
 
 function exec(command: string): string {
   if (debug) {
@@ -115,9 +120,9 @@ function main() {
   const url = args[0]!;
   const fullUrl = normalizeUrl(url);
 
-  exec(`agent-browser open ${getOpenArgs()} '${fullUrl}'`);
-  exec("agent-browser wait --load networkidle");
-  const title = exec("agent-browser eval 'document.title'");
+  ab(`open ${getOpenArgs()} '${fullUrl}'`);
+  ab("wait --load networkidle");
+  const title = ab("eval 'document.title'");
 
   console.log(JSON.stringify({ title }));
 }
