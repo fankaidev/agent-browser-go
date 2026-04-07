@@ -163,10 +163,12 @@ async function runApi(body: string, args: Record<string, string | number>): Prom
 }
 
 function runFetch(domain: string, body: string, args: Record<string, string | number>): void {
-  const varDecls = Object.entries(args)
-    .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
-    .join("\n");
-  const code = `${varDecls}\n${body}`;
+  // Wrap in IIFE to avoid variable name conflicts with browser globals
+  const argNames = Object.keys(args);
+  const argValues = Object.values(args)
+    .map((v) => JSON.stringify(v))
+    .join(", ");
+  const code = `((${argNames.join(", ")}) => { return ${body} })(${argValues})`;
 
   if (!isOnDomain(domain)) {
     const pageUrl = `https://${domain}`;
@@ -178,10 +180,12 @@ function runFetch(domain: string, body: string, args: Record<string, string | nu
 }
 
 function runScrape(domain: string, body: string, args: Record<string, string | number>): void {
-  const varDecls = Object.entries(args)
-    .map(([k, v]) => `const ${k} = ${JSON.stringify(v)};`)
-    .join("\n");
-  const code = `${varDecls}\n${body}`;
+  // Wrap in IIFE to avoid variable name conflicts with browser globals
+  const argNames = Object.keys(args);
+  const argValues = Object.values(args)
+    .map((v) => JSON.stringify(v))
+    .join(", ");
+  const code = `((${argNames.join(", ")}) => { return ${body} })(${argValues})`;
 
   const url = `https://${domain}`;
   ab(`open ${getOpenArgs()} '${url}'`);
