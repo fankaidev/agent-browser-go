@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { homedir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-
-export function normalizeUrl(url: string): string {
-  return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
-}
 
 export function parseFrontmatter(content: string): { domain: string; body: string } {
   const match = content.match(/^\/\*\n([\s\S]*?)\n\*\/\n([\s\S]*)$/);
@@ -22,12 +18,40 @@ export function parseFrontmatter(content: string): { domain: string; body: strin
   return { domain: domainMatch[1]!.trim(), body: body!.trim() };
 }
 
+export type ValidateResult =
+  | { ok: true; site: string; action: string }
+  | { ok: false; error: string; usage: string; actions?: string[] };
+
+export function getAvailableActions(sitesDir: string, site: string): string[] {
+  const siteDir = join(sitesDir, site);
+  if (!existsSync(siteDir)) {
+    return [];
+  }
+  const files = readdirSync(siteDir);
+  return files.filter((f) => f.endsWith(".js")).map((f) => f.replace(/\.js$/, ""));
+}
+
+export function validateArgs(args: string[], sitesDir?: string): ValidateResult {
+  const usage = "Usage: abg <site> <action>";
+
+  if (args.length === 0) {
+    return { ok: false, error: "Missing site argument", usage };
+  }
+
+  if (args.length === 1) {
+    const site = args[0]!;
+    const dir = sitesDir ?? getSitesDir();
+    const actions = getAvailableActions(dir, site);
+    return { ok: false, error: "Missing action argument", usage, actions };
+  }
+
+  return { ok: true, site: args[0]!, action: args[1]! };
+}
+
 let debug = false;
 
 function printUsage() {
-  console.log("Usage:");
-  console.log("  abg [--debug] <url>              Opens URL and prints page title");
-  console.log("  abg [--debug] <site> <script>    Runs sites/<site>/<script>.js");
+  console.log("Usage: abg [--debug] <site> <action>");
   console.log("");
   console.log("Options:");
   console.log("  --debug    Print agent-browser commands before executing");
@@ -107,24 +131,26 @@ function main() {
     args = args.slice(1);
   }
 
-  if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+  if (args[0] === "--help" || args[0] === "-h") {
     printUsage();
-    process.exit(args.length === 0 ? 1 : 0);
+    process.exit(0);
   }
 
-  if (args.length === 2) {
-    runScript(args[0]!, args[1]!);
-    return;
+  const validation = validateArgs(args);
+  if (!validation.ok) {
+    console.error(`Error: ${validation.error}`);
+    console.error(validation.usage);
+    if (validation.actions && validation.actions.length > 0) {
+      console.error("");
+      console.error(`Available actions for ${args[0]}:`);
+      for (const action of validation.actions) {
+        console.error(`  ${action}`);
+      }
+    }
+    process.exit(1);
   }
 
-  const url = args[0]!;
-  const fullUrl = normalizeUrl(url);
-
-  ab(`open ${getOpenArgs()} '${fullUrl}'`);
-  ab("wait --load networkidle");
-  const title = ab("eval 'document.title'");
-
-  console.log(JSON.stringify({ title }));
+  runScript(validation.site, validation.action);
 }
 
 // Only run main when executed directly
