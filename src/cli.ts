@@ -127,7 +127,7 @@ function getSitesDir(): string {
 }
 
 function getOpenArgs(): string {
-  return "--headed";
+  return isSessionRunning() ? "" : "--headed";
 }
 
 function resolveArgs(
@@ -236,6 +236,15 @@ function runScript(site: string, script: string, cliArgs: Record<string, string>
 
 const WAIT_TIMEOUT = 60000;
 const AB_SESSION = "abg";
+
+function isSessionRunning(): boolean {
+  try {
+    const output = execSync("agent-browser session list", { encoding: "utf-8" });
+    return output.includes(AB_SESSION);
+  } catch {
+    return false;
+  }
+}
 
 function ab(subcommand: string): string {
   return exec(`agent-browser --session ${AB_SESSION} ${subcommand}`);
