@@ -168,9 +168,11 @@ function runFetch(domain: string, body: string, args: Record<string, string | nu
     .join("\n");
   const code = `${varDecls}\n${body}`;
 
-  const pageUrl = `https://${domain}`;
-  ab(`open ${getOpenArgs()} '${pageUrl}'`);
-  ab("wait --load load");
+  if (!isOnDomain(domain)) {
+    const pageUrl = `https://${domain}`;
+    ab(`open ${getOpenArgs()} '${pageUrl}'`);
+    ab("wait --load load");
+  }
   const result = ab(`eval --json '${code.replace(/'/g, "'\\''")}'`);
   console.log(JSON.stringify(JSON.parse(result), null, 2));
 }
@@ -248,6 +250,21 @@ function isSessionRunning(): boolean {
 
 function ab(subcommand: string): string {
   return exec(`agent-browser --session ${AB_SESSION} ${subcommand}`);
+}
+
+function getCurrentDomain(): string | null {
+  try {
+    const url = ab("get url");
+    const match = url.match(/^https?:\/\/([^/]+)/);
+    return match ? match[1]!.replace(/^www\./, "") : null;
+  } catch {
+    return null;
+  }
+}
+
+function isOnDomain(domain: string): boolean {
+  const current = getCurrentDomain();
+  return current === domain || current === `www.${domain}`;
 }
 
 function exec(command: string): string {
