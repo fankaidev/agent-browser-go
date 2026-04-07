@@ -172,7 +172,7 @@ function runFetch(domain: string, body: string, args: Record<string, string | nu
   ab(`open ${getOpenArgs()} '${pageUrl}'`);
   ab("wait --load load");
   const result = ab(`eval --json '${code.replace(/'/g, "'\\''")}'`);
-  console.log(result);
+  console.log(JSON.stringify(JSON.parse(result), null, 2));
 }
 
 function runScrape(domain: string, body: string, args: Record<string, string | number>): void {
@@ -185,7 +185,7 @@ function runScrape(domain: string, body: string, args: Record<string, string | n
   ab(`open ${getOpenArgs()} '${url}'`);
   ab("wait --load networkidle");
   const result = ab(`eval --json '${code.replace(/'/g, "'\\''")}'`);
-  console.log(result);
+  console.log(JSON.stringify(JSON.parse(result), null, 2));
 }
 
 function runScript(site: string, script: string, cliArgs: Record<string, string>): void {
