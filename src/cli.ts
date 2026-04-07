@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
 import { existsSync, readFileSync, readdirSync } from "fs";
-import { homedir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -127,18 +126,8 @@ function getSitesDir(): string {
   return join(dirname(fileURLToPath(import.meta.url)), "..", "sites");
 }
 
-function getProfilePath(): string | null {
-  const profilePath = join(homedir(), ".abg", "profile");
-  return existsSync(profilePath) ? profilePath : null;
-}
-
 function getOpenArgs(): string {
-  const profilePath = getProfilePath();
-  const args = ["--headed"];
-  if (profilePath) {
-    args.push(`--profile '${profilePath}'`);
-  }
-  return args.join(" ");
+  return "--headed";
 }
 
 function resolveArgs(
