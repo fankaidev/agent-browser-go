@@ -170,7 +170,7 @@ function runFetch(domain: string, body: string, args: Record<string, string | nu
 
   const pageUrl = `https://${domain}`;
   ab(`open ${getOpenArgs()} '${pageUrl}'`);
-  ab("wait --load networkidle");
+  ab("wait --load load");
   const result = ab(`eval --json '${code.replace(/'/g, "'\\''")}'`);
   console.log(result);
 }
