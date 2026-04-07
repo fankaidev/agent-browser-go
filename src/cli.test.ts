@@ -171,7 +171,7 @@ describe("validateArgs", () => {
       ok: false,
       error: "Missing action argument",
       usage,
-      actions: ["best"],
+      actions: ["best", "user"],
     });
   });
 
