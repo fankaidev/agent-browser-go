@@ -1,8 +1,8 @@
 /*
 type: fetch
 domain: reddit.com
-args: limit=5
+args: name=me
 */
-fetch(`https://www.reddit.com/best.json?limit=${limit}`)
+fetch(`https://www.reddit.com/user/${name}.json`)
   .then((r) => r.json())
   .then((d) => d.data);
